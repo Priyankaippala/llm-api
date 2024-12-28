@@ -18,9 +18,9 @@ def upload():
         if not resume_summary or not job_description:
             return jsonify({"error": "Resume summary and job description are required."}), 400
 
-        questions = generate_interview_questions(resume_summary, job_description)
+        response = generate_interview_questions(resume_summary, job_description)
         
-        return jsonify({"questions": questions}), 200
+        return jsonify({"apiResponse": response}), 200
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
