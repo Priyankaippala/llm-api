@@ -1,5 +1,7 @@
 from flask import Blueprint, request, jsonify
 from PyPDF2 import PdfReader
+import speech_recognition as sr
+from io import BytesIO
 from app.services import generate_interview_questions
 
 # Create a Blueprint for routes
@@ -45,5 +47,37 @@ def upload():
 
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@api_bp.route("/convert-speech", methods=["POST"])
+def convert_speech_to_text():
+    """
+    Route to convert audio blob (speech) to text.
+    """
+    try:
+        if "audio" not in request.files:
+            return jsonify({"error": "Audio file is required."}), 400
+
+        audio_file = request.files["audio"]
+
+        # Use SpeechRecognition to convert audio to text
+        recognizer = sr.Recognizer()
+
+        # Convert the audio file to an audio source
+        audio_data = sr.AudioFile(audio_file)
+        with audio_data as source:
+            audio = recognizer.record(source)
+
+        # Recognize speech using Google's speech recognition
+        try:
+            text = recognizer.recognize_google(audio)
+            return jsonify({"text": text}), 200
+        except sr.UnknownValueError:
+            return jsonify({"error": "Could not understand the audio."}), 400
+        except sr.RequestError as e:
+            return jsonify({"error": f"Could not request results from Google Speech Recognition service; {e}"}), 500
+
     except Exception as e:
         return jsonify({"error": str(e)}), 500
