@@ -8,11 +8,6 @@ from app.services import generate_interview_questions
 api_bp = Blueprint("api", __name__)
 
 def extract_text_from_pdf(pdf_file):
-    """
-    Extract text content from a PDF file.
-    :param pdf_file: File object of the uploaded PDF
-    :return: Extracted text as a string
-    """
     try:
         reader = PdfReader(pdf_file)
         text = ""
@@ -24,9 +19,6 @@ def extract_text_from_pdf(pdf_file):
 
 @api_bp.route("/upload", methods=["POST"])
 def upload():
-    """
-    Route to generate interview questions based on resume and job description.
-    """
     try:
         if "file" not in request.files:
             return jsonify({"error": "Resume file is required."}), 400
@@ -37,10 +29,8 @@ def upload():
         if not resume_file or not job_description:
             return jsonify({"error": "Resume file and job description are required."}), 400
 
-        # Extract text from the uploaded resume file
         resume_summary = extract_text_from_pdf(resume_file)
 
-        # Generate interview questions
         response = generate_interview_questions(resume_summary, job_description)
         
         return jsonify({"apiResponse": response}), 200
@@ -62,15 +52,12 @@ def convert_speech_to_text():
 
         audio_file = request.files["audio"]
 
-        # Use SpeechRecognition to convert audio to text
         recognizer = sr.Recognizer()
 
-        # Convert the audio file to an audio source
         audio_data = sr.AudioFile(audio_file)
         with audio_data as source:
             audio = recognizer.record(source)
 
-        # Recognize speech using Google's speech recognition
         try:
             text = recognizer.recognize_google(audio)
             return jsonify({"text": text}), 200
